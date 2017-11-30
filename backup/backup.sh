@@ -142,6 +142,7 @@ done
 # Do the backup :
 echo -e " "
 echo ${LCYAN}-- Backups :${END}
+j=0
 for i in "${BCK_TARGET[@]}"; do
    START=$(date +%s)
    SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
@@ -150,11 +151,13 @@ for i in "${BCK_TARGET[@]}"; do
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
    elif [ "$BCK_METHOD" == "Archive" ]; then
+      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar"$EXT"
       tar cf"$LVL" \
           "${EXCLUDES[@]}" \
-          "$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar"$EXT" \
+          "${BCK_FILE[j]}" \
           -g "$BCK_DIR"/"$SNAP_DIR"/"$FOLDER".snar \
           "$i"
+	  ((j++))
    fi
    verify
    echo -e "$i backup duration: $(time-taken $START)
@@ -168,6 +171,16 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
       /etc/init.d/"$i" start
 	  verify
    done
+fi
+
+# Send a message through telegram :
+if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
+	for i in "${BCK_FILE[@]}"; do
+	   BCK_FILE_SIZE=$(ls -lash $i | awk '{print $6}')
+	   MSG_DATA+=(- "$i": "$BCK_FILE_SIZE"\n)
+	done
+
+	telegram success "Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}" /var/log/backup.log
 fi
 
 # Remove older archives than wanted :
