@@ -55,7 +55,7 @@ source ${WHEREAMI%/*}/functions.sh            # Functions
 # Check if config exist :
 if [ ! -s "$CONF_FILE" ]; then
    echo "[ ${LRED}KO${END} ] "$CONF_FILE" does not exist or is empty."
-   echo "-> Please set your configuration and stat this script again."
+   echo "-> Please set your configuration and start this script again."
    exit 1
 fi
 
