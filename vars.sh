@@ -18,7 +18,6 @@ WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TELEGRAM_PATH=${WHEREAMI%/*}/telegram
 
 #--- Define text colors
-END=$(echo -en '\033[0m')
 RED=$(echo -en '\033[00;31m')
 GREEN=$(echo -en '\033[00;32m')
 YELLOW=$(echo -en '\033[00;33m')
@@ -33,6 +32,7 @@ LBLUE=$(echo -en '\033[01;34m')
 LPURPLE=$(echo -en '\033[01;35m')
 LCYAN=$(echo -en '\033[01;36m')
 WHITE=$(echo -en '\033[01;37m')
+END=$(echo -en '\033[0m')
 
 # Test
 #echo ${RED}RED ${GREEN}GREEN ${YELLOW}YELLOW ${BLUE}BLUE ${PURPLE}PURPLE ${CYAN}CYAN ${WHITE}WHITE${RESTORE}
