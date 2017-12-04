@@ -153,8 +153,8 @@ for i in "${BCK_TARGET[@]}"; do
    elif [ "$BCK_METHOD" == "Archive" ]; then
       BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar"$EXT"
       tar cf"$LVL" \
-          "${EXCLUDES[@]}" \
           "${BCK_FILE[j]}" \
+          "${EXCLUDES[@]}" \
           -g "$BCK_DIR"/"$SNAP_DIR"/"$FOLDER".snar \
           "$i"
 	  ((j++))
