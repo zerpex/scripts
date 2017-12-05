@@ -203,7 +203,7 @@ if [ "$SYNCRONIZATION" == "Yes" ]; then
          rsync -rtuv --delete-after "$i"/"$DIST_HOST" "$BACKUP_DIR"
       fi
       verify
-      echo -e "$i synchonization duration: $(time_since $START)
+      echo -e "$i synchonization duration: $(time_since $START)"
    done
 fi 
 
