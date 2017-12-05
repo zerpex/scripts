@@ -50,7 +50,7 @@ CONF_FILE=$WHEREAMI/backup_$(hostname).conf
 # Includes :
 source $CONF_FILE                             # Server configuration
 source ${WHEREAMI%/*}/vars.sh                 # Global variables
-source ${WHEREAMI%/*}/functions.sh            # Functions
+source $WHEREAMI/functions.sh                 # Functions
 
 # Check if config exist :
 if [ ! -s "$CONF_FILE" ]; then
@@ -160,7 +160,7 @@ for i in "${BCK_TARGET[@]}"; do
 	  ((j++))
    fi
    verify
-   echo -e "$i backup duration: $(time-taken $START)
+   echo -e "$i backup duration: $(time_since $START)"
 done
 
 # Start services if needed :
@@ -203,7 +203,7 @@ if [ "$SYNCRONIZATION" == "Yes" ]; then
          rsync -rtuv --delete-after "$i"/"$DIST_HOST" "$BACKUP_DIR"
       fi
       verify
-      echo -e "$i synchonization duration: $(time-taken $START)
+      echo -e "$i synchonization duration: $(time_since $START)
    done
 fi 
 
