@@ -3,7 +3,7 @@
 # Set generic variables
 
 #--- Set the current day number :
-CUR_DAY=$(date +%d)
+CUR_DAY=$(date +%-d)
 
 # Set the current day :
 DATE=$(date +%Y%m%d)
