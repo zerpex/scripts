@@ -46,21 +46,43 @@
 WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 CONF_FILE=$WHEREAMI/backup_$(hostname).conf
+SCRIPT_PATH=${WHEREAMI%/*}
 
-# Includes :
-source $CONF_FILE                             # Server configuration
-source ${WHEREAMI%/*}/vars.sh                 # Global variables
-source $WHEREAMI/functions.sh                 # Functions
-
-# Check if config exist :
-if [ ! -s "$CONF_FILE" ]; then
-   echo "[ ${LRED}KO${END} ] "$CONF_FILE" does not exist or is empty."
+# Server configuration : If configuration file exist, load it. Else exit.
+if [ -s "$CONF_FILE" ]; then
+   source $CONF_FILE
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$CONF_FILE"{END} does not exist or is empty."
    echo "-> Please set your configuration and start this script again."
+   exit 1
+fi
+
+# Global variables : If var.sh file exist, load it. Else exit.
+if [ -s "$SCRIPT_PATH/vars.sh" ]; then
+   source $SCRIPT_PATH/vars.sh 
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$SCRIPT_PATH/vars.sh"{END} does not exist or is empty."
+   echo "-> Please put the var.sh file on the right path and start this script again."
+   exit 1
+fi
+
+# Functions : If functions.sh file exist, load it. Else exit.
+if [ -s "$SCRIPT_PATH/functions.sh" ]; then
+   source $SCRIPT_PATH/functions.sh
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$SCRIPT_PATH/functions.sh"{END} does not exist or is empty."
+   echo "-> Please put the functions.sh file on the right path and start this script again."
    exit 1
 fi
 
 # Other variables :
 ARCHIVES=$BACKUP_DIR/$HNAME/$ARCH_DIR
+
+# Set exclusion's pattern
+EXCLUDES=()
+for j in "${BCK_EXCLUDE[@]}"; do
+    EXCLUDES+=(--exclude "$j")
+done
 
 # Define compression level and extension to use :
 case $COMPRESSION in
@@ -71,14 +93,17 @@ case $COMPRESSION in
   gzip)
     LVL=z
     EXT=.gz
+    COMPRESS=gzip
     ;;
   bzip2)
     LVL=j
     EXT=.bz2
+    COMPRESS=bzip2
     ;;
   lzma)
     LVL=J
     EXT=.xz
+    COMPRESS="xz -k9"
     ;;
 esac
 
@@ -133,33 +158,27 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    done
 fi
 
-# Set exclusion's pattern
-EXCLUDES=()
-for j in "${BCK_EXCLUDE[@]}"; do
-    EXCLUDES+=(--exclude "$j")
-done
-
 # Do the backup :
 echo -e " "
 echo ${LCYAN}-- Backups :${END}
 j=0
 for i in "${BCK_TARGET[@]}"; do
    START=$(date +%s)
-   SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
-   FAILED="[ ${LRED}KO${END} ] "$i"'s backup is KO."
+   #SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
+   #FAILED="[ ${LRED}KO${END} ] "$i"'s backup is KO."
    FOLDER="$(echo "$i" | awk -F/ '{print $3}')"
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
    elif [ "$BCK_METHOD" == "Archive" ]; then
       BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar"$EXT"
-      tar cf"$LVL" \
+      tar cf \
           "${BCK_FILE[j]}" \
           "${EXCLUDES[@]}" \
           -g "$BCK_DIR"/"$SNAP_DIR"/"$FOLDER".snar \
           "$i"
 	  ((j++))
    fi
-   verify
+   #verify
    echo -e "$i backup duration: $(time_since $START)"
 done
 
@@ -173,10 +192,23 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    done
 fi
 
+# Compress files if needed :
+if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then 
+   for i in "$(ls "$BCK_DIR"/*.tar)"; do
+      START=$(date +%s)
+      SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed."
+      FAILED="[ ${LRED}KO${END} ] "$i" was not compressed."
+      $COMPRESS $i
+	  if [ "$COMPRESSION" == "lzma" ]; then rm $i; fi
+	  verify
+      echo -e "$i compression duration: $(time_since $START)"
+   done
+fi
+
 # Send a message through telegram :
 if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
 	for i in "${BCK_FILE[@]}"; do
-	   BCK_FILE_SIZE=$(ls -lash $i | awk '{print $6}')
+	   BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
 	   MSG_DATA+=(- "$i": "$BCK_FILE_SIZE"\n)
 	done
 
