@@ -12,21 +12,21 @@
 #     low = gzip
 #     medium = bzip2
 #     high = lzma
-# 
+#
 # HOW TO USE THIS SCRIPT :
 #-------------------------
-# 
+#
 # 1- Copy backup_sample.conf to backup_hostname.conf where "hostname" is the hsotname of the server.
 # 2- Edit backup_hostname.conf and set all parameters as you wish.
 # 3- Execute the script.
 #    You can call it through crontab directly.
-# 
+#
 # NOTES :
 #--------
-# 
+#
 # - If you want to start a manual full backup, just start the script with "full" parameter. ie :
 #    /data/scripts/backup.sh full
-# 
+#
 # Crontab : Each days at 4am:
 # 0 4 * * * /data/scripts/backup.sh
 #
@@ -44,9 +44,9 @@
 
 # Determine where this script is stored :
 WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH=${WHEREAMI%/*}
 
 CONF_FILE=$WHEREAMI/backup_$(hostname).conf
-SCRIPT_PATH=${WHEREAMI%/*}
 
 # Server configuration : If configuration file exist, load it. Else exit.
 if [ -s "$CONF_FILE" ]; then
@@ -59,7 +59,7 @@ fi
 
 # Global variables : If var.sh file exist, load it. Else exit.
 if [ -s "$SCRIPT_PATH/vars.sh" ]; then
-   source $SCRIPT_PATH/vars.sh 
+   source $SCRIPT_PATH/vars.sh
 else
    echo "[ ${LRED}KO${END} ] ${LCYAN}"$SCRIPT_PATH/vars.sh"{END} does not exist or is empty."
    echo "-> Please put the var.sh file on the right path and start this script again."
@@ -149,7 +149,7 @@ else
 fi
 
 # Stop services if needed for full backups :
-if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then 
+if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" stopped."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not stop as expected."
@@ -162,15 +162,16 @@ fi
 echo -e " "
 echo ${LCYAN}-- Backups :${END}
 j=0
+START_TOTAL=$(date +%s)
 for i in "${BCK_TARGET[@]}"; do
    START=$(date +%s)
-   #SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
-   #FAILED="[ ${LRED}KO${END} ] "$i"'s backup is KO."
+   SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
+   FAILED="[ ${LRED}KO${END} ] "$i"'s backup terminated with exceptions."
    FOLDER="$(echo "$i" | awk -F/ '{print $3}')"
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
    elif [ "$BCK_METHOD" == "Archive" ]; then
-      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar"$EXT"
+      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
       tar cf \
           "${BCK_FILE[j]}" \
           "${EXCLUDES[@]}" \
@@ -178,12 +179,14 @@ for i in "${BCK_TARGET[@]}"; do
           "$i"
 	  ((j++))
    fi
-   #verify
+   verify
    echo -e "$i backup duration: $(time_since $START)"
 done
+echo -e " "
+echo -e "Total backup duration: $(time_since $START_TOTAL)"
 
 # Start services if needed :
-if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then 
+if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" started."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not start as expected."
@@ -193,7 +196,8 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
 fi
 
 # Compress files if needed :
-if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then 
+START_TOTAL=$(date +%s)
+if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then
    for i in "$(ls "$BCK_DIR"/*.tar)"; do
       START=$(date +%s)
       SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed."
@@ -204,12 +208,13 @@ if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESS
       echo -e "$i compression duration: $(time_since $START)"
    done
 fi
+echo -e "Total compression duration: $(time_since $START_TOTAL)"
 
 # Send a message through telegram :
 if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
 	for i in "${BCK_FILE[@]}"; do
 	   BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
-	   MSG_DATA+=(- "$i": "$BCK_FILE_SIZE"\n)
+	   MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
 	done
 
 	telegram success "Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}" /var/log/backup.log
@@ -237,7 +242,7 @@ if [ "$SYNCRONIZATION" == "Yes" ]; then
       verify
       echo -e "$i synchonization duration: $(time_since $START)"
    done
-fi 
+fi
 
 echo -e " "
 echo -e "Total backup duration: $(time_since $SCRIPT_START)."
