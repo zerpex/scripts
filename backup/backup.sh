@@ -150,6 +150,8 @@ fi
 
 # Stop services if needed for full backups :
 if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
+   # If using check_websites.sh, disable it :
+   echo "$( crontab -l | sed 's/.*check_websites.sh/#&/' )" | crontab
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" stopped."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not stop as expected."
@@ -167,11 +169,11 @@ for i in "${BCK_TARGET[@]}"; do
    START=$(date +%s)
    SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
    FAILED="[ ${LRED}KO${END} ] "$i"'s backup terminated with exceptions."
-   FOLDER="$(echo "$i" | awk -F/ '{print $3}')"
+   FOLDER[$j]="$(echo "$i" | awk -F/ '{print $3}')"
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
    elif [ "$BCK_METHOD" == "Archive" ]; then
-      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
+      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER[$j]"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
       tar cf \
           "${BCK_FILE[j]}" \
           "${EXCLUDES[@]}" \
@@ -193,6 +195,8 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
       /etc/init.d/"$i" start
 	  verify
    done
+   # If using check_websites.sh, enable it back :
+   echo "$( crontab -l | sed '/.*check_websites.sh/s/^#//' )" | crontab
 fi
 
 # Compress files if needed :
@@ -212,12 +216,14 @@ echo -e "Total compression duration: $(time_since $START_TOTAL)"
 
 # Send a message through telegram :
 if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
-	for i in "${BCK_FILE[@]}"; do
-	   BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
-	   MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
-	done
-
-	telegram success "Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}" /var/log/backup.log
+  MSG_DATA=()
+  for i in "${FOLDER[@]}"; do
+     BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
+     MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
+  done
+  MSG="Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
+	telegram success "$MSG" /var/log/backup.log
+  #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
 fi
 
 # Remove older archives than wanted :
