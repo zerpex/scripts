@@ -126,16 +126,25 @@ for i in $(docker network inspect $DOCKER_FRONTEND_NETWORK | grep Name | grep -v
    fi
 done
 
+tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".latest | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > /tmp/latest
+tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".last | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > /tmp/last
+
 # Send message on lost URL since last check :
-URL_LOST=$(diff "$LOGS_PATH"/"$LOG_FILE_NAME".last "$LOGS_PATH"/"$LOG_FILE_NAME".latest | grep -v ">" | grep http | awk '{print $5}')
+URL_LOST=$(diff /tmp/last /tmp/latest | grep -v ">" | awk '{print $2}' | sed '/^\s*$/d')
 if [ ! -z "$URL_LOST" ]; then
-  "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n"$URL_LOST""
+  for i in "$URL_LOST"; do
+    LOST_URL+=(- "$URL_LOST"\\n)
+  done
+  "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n"$LOST_URL""
 fi
 
 # Send message on new URL since last check :
-URL_NEW=$(diff "$LOGS_PATH"/"$LOG_FILE_NAME".last "$LOGS_PATH"/"$LOG_FILE_NAME".latest | grep -v "<" | grep http | awk '{print $5}')
+URL_NEW=$(diff /tmp/last /tmp/latest | grep -v "<" |awk '{print $2}' | sed '/^\s*$/d')
 if [ ! -z "$URL_NEW" ]; then
-  "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n"$URL_NEW""
+  for i in "$URL_NEW"; do
+    NEW_URL+=(- "$URL_NEW"\\n)
+  done
+  "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n"$NEW_URL""
 fi
 
 while read -r CHECK; do
