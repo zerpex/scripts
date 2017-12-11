@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Function to convert time in seconds to be human readable 
+# Function to convert time in seconds to be human readable
 time_convert () {
    SECS="$1"
    echo $((SECS/86400))" days "$(date -d "1970-01-01 + $SECS seconds" "+%H hours %M minutes %S seconds")
@@ -25,7 +25,9 @@ verify () {
     echo -e " "
     echo -e "${FAILED}" 1>&2
     echo -e " "
-    exit 1
+    if [ "$1" == "exit" ]; then
+      exit 1
+    fi
    fi
 }
 
@@ -35,6 +37,6 @@ verify () {
 # File is optionnal.
 telegram () {
    cd $TELEGRAM_PATH
-   ./telegram_notify.sh --"$1" --text "$2" $(if [ -z "$3" ]; then echo -n "--document "$3""; fi)
+   ./telegram_notify.sh --"$1" --text "$2" $(if [ ! -z "$3" ]; then echo -n "--document "$3""; fi)
    cd $WHEREAMI
 }
