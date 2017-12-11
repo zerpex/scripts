@@ -214,18 +214,6 @@ if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESS
 fi
 echo -e "Total compression duration: $(time_since $START_TOTAL)"
 
-# Send a message through telegram :
-if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
-  MSG_DATA=()
-  for i in "${FOLDER[@]}"; do
-     BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
-     MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
-  done
-  MSG="Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
-	telegram success "$MSG" /var/log/backup.log
-  #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
-fi
-
 # Remove older archives than wanted :
 while [ "$(ls "$ARCHIVES" | wc -l)" -gt "$RETENTION" ]; do
    OLDEST=$(ls -tr "$ARCHIVES" | head -1)
@@ -252,3 +240,14 @@ fi
 
 echo -e " "
 echo -e "Total backup duration: $(time_since $SCRIPT_START)."
+
+# Send a message through telegram :
+if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
+  MSG_DATA=()
+  for i in "${FOLDER[@]}"; do
+     BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
+     MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
+  done
+  MSG="Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
+	telegram success "$MSG" /var/log/backup.log
+  #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
