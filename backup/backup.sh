@@ -173,7 +173,7 @@ for i in "${BCK_TARGET[@]}"; do
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
    elif [ "$BCK_METHOD" == "Archive" ]; then
-      BCK_FILE[$j]="$BCK_DIR"/"$FOLDER[$j]"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
+      BCK_FILE[$j]="$BCK_DIR"/"${FOLDER[$j]}"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
       tar cf \
           "${BCK_FILE[j]}" \
           "${EXCLUDES[@]}" \
