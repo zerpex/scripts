@@ -59,6 +59,7 @@ export LANG=$TZ
 apt -y install \
   $(if [ "$BASE_TOOLS" == "Yes" ]; then  \
 	echo -n "sudo "; \
+        echo -n "lshw "; \
 	echo -n "htop "; \
 	echo -n "locate "; \
 	echo -n "wget "; \
