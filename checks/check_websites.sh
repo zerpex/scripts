@@ -126,26 +126,31 @@ for i in $(docker network inspect $DOCKER_FRONTEND_NETWORK | grep Name | grep -v
    fi
 done
 
-tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".latest | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > /tmp/latest
-tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".last | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > /tmp/last
+TMP_DIR=/tmp/cw."$(date +"%Y%m%d%H%M%S")"
+mkdir $TMP_DIR
+tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".latest | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > "$TMP_DIR"/latest
+tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".last | grep http | awk '{print $4}' | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sort | uniq > "$TMP_DIR"/last
 
 # Send message on lost URL since last check :
-URL_LOST=$(diff /tmp/last /tmp/latest | grep -v ">" | awk '{print $2}' | sed '/^\s*$/d')
-if [ ! -z "$URL_LOST" ]; then
-  for i in "$URL_LOST"; do
-    LOST_URL+=(- "$URL_LOST"\\n)
-  done
+diff "$TMP_DIR"/last "$TMP_DIR"/latest | grep -v ">" | awk '{print $2}' | sed '/^\s*$/d' > "$TMP_DIR"/lost
+if [ -s "$TMP_DIR"/lost ]; then
+  while IFS= read -r line; do
+    LOST_URL+="- $line\\n"
+  done < "$TMP_DIR"/lost
   "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n"$LOST_URL""
 fi
 
 # Send message on new URL since last check :
-URL_NEW=$(diff /tmp/last /tmp/latest | grep -v "<" |awk '{print $2}' | sed '/^\s*$/d')
-if [ ! -z "$URL_NEW" ]; then
-  for i in "$URL_NEW"; do
-    NEW_URL+=(- "$URL_NEW"\\n)
-  done
-  "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n"$NEW_URL""
+diff "$TMP_DIR"/last "$TMP_DIR"/latest | grep -v "<" |awk '{print $2}' | sed '/^\s*$/d' > "$TMP_DIR"/new
+NEW_URL=()
+if [ -s "$TMP_DIR"/new ]; then
+  while IFS= read -r LINE; do
+    NEW_URL+="- $LINE\\n"
+  done < "$TMP_DIR"/new
+  "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n$NEW_URL"
 fi
+
+#rm -r "$TMP_DIR"
 
 while read -r CHECK; do
   CHECK_KO=$(echo "$CHECK" | grep ERR)
