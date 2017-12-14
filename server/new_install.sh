@@ -28,6 +28,10 @@
 #                                     /!\                                         #
 ###################################################################################
 
+# Determine where this script is stored :
+WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH=${WHEREAMI%/*}
+
 CONF_FILE=$WHEREAMI/new_install_$(hostname).conf
 
 # Includes :
