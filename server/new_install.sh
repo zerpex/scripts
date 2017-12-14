@@ -93,7 +93,7 @@ apt -y install \
 	echo -n "git "; \
 	echo -n "curl "; \
 	echo -n "smartmontools "; \
-	echo -n "smem"; \
+	echo -n "smem "; \
 	echo -n "ncdu "; \
   fi) \
   $(if [ "$NETWORK_TOOLS" == "Yes" ]; then  \
