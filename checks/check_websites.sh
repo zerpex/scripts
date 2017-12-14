@@ -150,7 +150,7 @@ if [ -s "$TMP_DIR"/new ]; then
   "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n$NEW_URL"
 fi
 
-#rm -r "$TMP_DIR"
+rm -r "$TMP_DIR"
 
 while read -r CHECK; do
   CHECK_KO=$(echo "$CHECK" | grep ERR)
