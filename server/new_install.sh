@@ -28,12 +28,38 @@
 #                                     /!\                                         #
 ###################################################################################
 
+# Determine where this script is stored :
+WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH=${WHEREAMI%/*}
+
 CONF_FILE=$WHEREAMI/new_install_$(hostname).conf
 
-# Includes :
-source $CONF_FILE                             # Server configuration
-source ${WHEREAMI%/*}/vars.sh                 # Global variables
-source ${WHEREAMI%/*}/functions.sh            # Functions
+# Server configuration : If configuration file exist, load it. Else exit.
+if [ -s "$CONF_FILE" ]; then
+   source $CONF_FILE
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$CONF_FILE"{END} does not exist or is empty."
+   echo "-> Please set your configuration and start this script again."
+   exit 1
+fi
+
+# Global variables : If var.sh file exist, load it. Else exit.
+if [ -s "$SCRIPT_PATH/vars.sh" ]; then
+   source $SCRIPT_PATH/vars.sh
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$SCRIPT_PATH/vars.sh"{END} does not exist or is empty."
+   echo "-> Please put the var.sh file on the right path and start this script again."
+   exit 1
+fi
+
+# Functions : If functions.sh file exist, load it. Else exit.
+if [ -s "$SCRIPT_PATH/functions.sh" ]; then
+   source $SCRIPT_PATH/functions.sh
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$SCRIPT_PATH/functions.sh"{END} does not exist or is empty."
+   echo "-> Please put the functions.sh file on the right path and start this script again."
+   exit 1
+fi
 
 # Check if config exist :
 if [ ! -s "$CONF_FILE" ]; then
@@ -67,7 +93,7 @@ apt -y install \
 	echo -n "git "; \
 	echo -n "curl "; \
 	echo -n "smartmontools "; \
-	echo -n "smem"; \
+	echo -n "smem "; \
 	echo -n "ncdu "; \
   fi) \
   $(if [ "$NETWORK_TOOLS" == "Yes" ]; then  \
