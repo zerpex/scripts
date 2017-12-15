@@ -48,15 +48,6 @@ SCRIPT_PATH=${WHEREAMI%/*}
 
 CONF_FILE=$WHEREAMI/backup_$(hostname).conf
 
-# Server configuration : If configuration file exist, load it. Else exit.
-if [ -s "$CONF_FILE" ]; then
-   source $CONF_FILE
-else
-   echo "[ ${LRED}KO${END} ] ${LCYAN}"$CONF_FILE"{END} does not exist or is empty."
-   echo "-> Please set your configuration and start this script again."
-   exit 1
-fi
-
 # Global variables : If var.sh file exist, load it. Else exit.
 if [ -s "$SCRIPT_PATH/vars.sh" ]; then
    source $SCRIPT_PATH/vars.sh
@@ -74,6 +65,19 @@ else
    echo "-> Please put the functions.sh file on the right path and start this script again."
    exit 1
 fi
+
+# Server configuration : If configuration file exist, load it. Else exit.
+if [ -s "$CONF_FILE" ]; then
+   source $CONF_FILE
+else
+   echo "[ ${LRED}KO${END} ] ${LCYAN}"$CONF_FILE"{END} does not exist or is empty."
+   echo "-> Please set your configuration and start this script again."
+   exit 1
+fi
+
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
 
 # Other variables :
 ARCHIVES=$BACKUP_DIR/$HNAME/$ARCH_DIR
@@ -175,7 +179,7 @@ for i in "${BCK_TARGET[@]}"; do
    elif [ "$BCK_METHOD" == "Archive" ]; then
       BCK_FILE[$j]="$BCK_DIR"/"${FOLDER[$j]}"-"$(date +"%Y%m%d-%H%M%S")"-"$BCK_TYPE".tar
       tar cf \
-          "${BCK_FILE[j]}" \
+          "${BCK_FILE[$j]}" \
           "${EXCLUDES[@]}" \
           -g "$BCK_DIR"/"$SNAP_DIR"/"$FOLDER".snar \
           "$i"
@@ -189,6 +193,9 @@ echo -e "Total backup duration: $(time_since $START_TOTAL)"
 
 # Start services if needed :
 if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
+   if [ "$COLD_SCRIPT" == "Yes" ]; then
+      source "$COLD_SCRIPT_FILE"
+   fi
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" started."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not start as expected."
@@ -244,10 +251,13 @@ echo -e "Total backup duration: $(time_since $SCRIPT_START)."
 # Send a message through telegram :
 if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
   MSG_DATA=()
+  j=0
   for i in "${FOLDER[@]}"; do
-     BCK_FILE_SIZE=$(ls -lash $i$EXT | awk '{print $6}')
+     BCK_FILE_SIZE=$(ls -lash "${BCK_FILE[$j]}"."$EXT" | awk '{print $6}')
      MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
+	 ((j++))
   done
   MSG="Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
 	telegram success "$MSG" /var/log/backup.log
   #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
+fi
