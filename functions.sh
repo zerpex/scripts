@@ -3,7 +3,10 @@
 # Function to convert time in seconds to be human readable
 time_convert () {
    SECS="$1"
-   echo $((SECS/86400))" days "$(date -d "1970-01-01 + $SECS seconds" "+%H hours %M minutes %S seconds")
+   DAYS_TAKEN=$((SECS/86400))
+   if [ "$DAYS_TAKEN" > "0" ]; then
+     DAYS_DISPLAYED=""$DAYS_TAKEN"d & "
+   echo "$DAYS_DISPLAYED"$(date -d "1970-01-01 + $SECS seconds" "+%-Hh %-Mmn %-Ss")
 }
 
 # Function to determine time taken to complete decryption/extraction

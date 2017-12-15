@@ -257,7 +257,7 @@ if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
      MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
 	 ((j++))
   done
-  MSG="Backup finished !\nTotal backup duration: $(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
+  MSG="Backup finished !\n$(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
 	telegram success "$MSG" /var/log/backup.log
   #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
 fi
