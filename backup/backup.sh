@@ -253,11 +253,11 @@ if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
   MSG_DATA=()
   j=0
   for i in "${FOLDER[@]}"; do
-     BCK_FILE_SIZE=$(ls -lash "${BCK_FILE[$j]}"."$EXT" | awk '{print $6}')
+     BCK_FILE_SIZE=$(ls -lash "${BCK_FILE[$j]}""$EXT" | awk '{print $6}')
      MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
 	 ((j++))
   done
-  MSG="Backup finished !\n$(time_since $SCRIPT_START).\nBackuped archives: \n${MSG_DATA[@]}"
+  MSG="Backup finished !\n$(time_since $SCRIPT_START)\nBackuped archives: \n${MSG_DATA[@]}"
 	telegram success "$MSG" /var/log/backup.log
   #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
 fi
