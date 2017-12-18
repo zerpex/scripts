@@ -4,7 +4,7 @@
 time_convert () {
   SECS="$1"
   DAYS_TAKEN=$((SECS/86400))
-  if [ "$DAYS_TAKEN" ! eq "0" ]; then
+  if [ "$DAYS_TAKEN" -ne "0" ]; then
      DAYS_DISPLAYED=""$DAYS_TAKEN"d & "
      echo "$DAYS_DISPLAYED"$(date -d "1970-01-01 + $SECS seconds" "+%-Hh %-Mmn %-Ss")
   fi
