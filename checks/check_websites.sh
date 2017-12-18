@@ -137,7 +137,7 @@ if [ -s "$TMP_DIR"/lost ]; then
   while IFS= read -r line; do
     LOST_URL+="- $line\\n"
   done < "$TMP_DIR"/lost
-  "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n"$LOST_URL""
+  "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n$LOST_URL"
 fi
 
 # Send message on new URL since last check :
