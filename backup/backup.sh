@@ -155,7 +155,7 @@ fi
 # Stop services if needed for full backups :
 if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    # If using check_websites.sh, disable it :
-   echo "$( crontab -l | sed 's/.*check_websites.sh/#&/' )" | crontab
+   echo "$( crontab -l | sed 's/.*check_websites.sh/#&/' )" | crontab -
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" stopped."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not stop as expected."
