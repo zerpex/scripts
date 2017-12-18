@@ -103,11 +103,10 @@ for i in $(docker network inspect $DOCKER_FRONTEND_NETWORK | grep Name | grep -v
 	   # If website is still KO after a container restart, notify through telegram with container's logs
        if [ "$RESULT2" != "200" ]; then
          echo -e "[ ${CRED}ERR$CEND ] ${CYELLOW}https://$URL$CEND is still ${CRED}KO$CEND with http code : $RESULT2. Please check $i !" >> $LOG_TEMP
-         #if [ ! -f "$NOTIFIED_LIST" ] || [[ ! "$(cat $NOTIFIED_LIST)" =~ "$i" ]]; then
-         if [ ! -f "$NOTIFIED_LIST" ] || ! grep -q "$i" "$NOTIFIED_LIST"; then
+         if [ ! -f "$NOTIFIED_LIST" ] || ! grep -q "$URL" "$NOTIFIED_LIST"; then
 	         docker logs "$i" > "$DOCKER_SCRIPT_LOG_FILE" 2>/dev/null
            "$TELEGRAM_PATH" --error --text "https://"$URL" is DOWN\nhttp code "$RESULT2"\nPlease check "$i" logs" --document $DOCKER_SCRIPT_LOG_FILE
-           echo "$i" >> "$NOTIFIED_LIST"
+           echo "$URL" >> "$NOTIFIED_LIST"
          fi
 	   else
 	     # If website if OK after a container's restart, notify it through telegram
@@ -135,7 +134,9 @@ tail -n +5 "$LOGS_PATH"/"$LOG_FILE_NAME".last | grep http | awk '{print $4}' | s
 diff "$TMP_DIR"/last "$TMP_DIR"/latest | grep -v ">" | awk '{print $2}' | sed '/^\s*$/d' > "$TMP_DIR"/lost
 if [ -s "$TMP_DIR"/lost ]; then
   while IFS= read -r line; do
-    LOST_URL+="- $line\\n"
+    if ! grep -q "$URL" "$NOTIFIED_LIST"; then
+      LOST_URL+="- $line\\n"
+	fi
   done < "$TMP_DIR"/lost
   "$TELEGRAM_PATH" --question --text "The following URL(s) are no longer present :\n$LOST_URL"
 fi
@@ -145,7 +146,9 @@ diff "$TMP_DIR"/last "$TMP_DIR"/latest | grep -v "<" |awk '{print $2}' | sed '/^
 NEW_URL=()
 if [ -s "$TMP_DIR"/new ]; then
   while IFS= read -r LINE; do
-    NEW_URL+="- $LINE\\n"
+    if ! grep -q "$URL" "$NOTIFIED_LIST"; then
+      NEW_URL+="- $LINE\\n"
+	fi
   done < "$TMP_DIR"/new
   "$TELEGRAM_PATH" --question --text "New URL(s) detected :\n$NEW_URL"
 fi
