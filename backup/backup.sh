@@ -43,8 +43,8 @@
 ###################################################################################
 
 # Determine where this script is stored :
-WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SCRIPT_PATH=${WHEREAMI%/*}
+export WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export SCRIPT_PATH=${WHEREAMI%/*}
 
 CONF_FILE=$WHEREAMI/backup_$(hostname).conf
 
