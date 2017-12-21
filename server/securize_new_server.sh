@@ -178,10 +178,10 @@ sudo /etc/init.d/knockd start
 
 if [ -z $(docker --version | grep "not found") ]; then   
   sudo docker pull txt3rob/docker-ssh-honey
-  sudo docker run -d -m 512m --cpus=".5" -p 22:22 --name ssh-honeypot_droberson txt3rob/docker-ssh-honey
+  sudo docker run -d -m 256m --cpus=".5" -p 22:22 --name ssh-honeypot_droberson txt3rob/docker-ssh-honey
 else
   echo " "
-  echo -e "[ KO ] /!\ Can't use honeypot : Docker is NOT installed :"
+  echo -e "/!\ Can't use honeypot : Docker is NOT installed :"
   echo " "
 fi
 
