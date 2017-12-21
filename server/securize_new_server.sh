@@ -110,22 +110,22 @@ for i in "${PORT_OPEN[@]}"; do
   #sudo iptables -A OUTPUT -p tcp --sport $i -j ACCEPT                          # Set specified rules.
 done
 
-# Docker specific
-if [ -z $(docker --version | grep "not found") ]; then   
-  # Remove iptables auto-generating capability from docker
-  service docker stop
-  mkdir -p /etc/systemd/system/docker.service.d/
-cat > /etc/systemd/system/docker.service.d/noiptables.conf <<- EOM
-[Service]
-ExecStart=
-ExecStart=/usr/bin/dockerd -H fd:// --dns 8.8.8.8 --dns 8.8.4.4 --iptables=false  
-EOM
-  systemctl daemon-reload
-  service docker start
-  # Add rules for docker to work:
-  sudo iptables -A FORWARD -i docker0 -o $WAN -j ACCEPT -m comment --comment "Docker forwaring"
-  sudo iptables -A FORWARD -i $WAN -o docker0 -j ACCEPT -m comment --comment "Docker forwaring"
-fi
+# # Docker specific
+# if [ -z $(docker --version | grep "not found") ]; then   
+  # # Remove iptables auto-generating capability from docker
+  # service docker stop
+  # mkdir -p /etc/systemd/system/docker.service.d/
+# cat > /etc/systemd/system/docker.service.d/noiptables.conf <<- EOM
+# [Service]
+# ExecStart=
+# ExecStart=/usr/bin/dockerd -H fd:// --dns 8.8.8.8 --dns 8.8.4.4 --iptables=false  
+# EOM
+  # systemctl daemon-reload
+  # service docker start
+  # # Add rules for docker to work:
+  # sudo iptables -A FORWARD -i docker0 -o $WAN -j ACCEPT -m comment --comment "Docker forwaring"
+  # sudo iptables -A FORWARD -i $WAN -o docker0 -j ACCEPT -m comment --comment "Docker forwaring"
+# fi
 
 sudo iptables -A INPUT -j DROP                                                # Drop anything else
 
@@ -150,7 +150,6 @@ cat > knockd.tmp <<- EOM
 [options]
       logfile   = /var/log/knockd.log
       interface = WAN
-
 [SSH]
       sequence      = KNOCK_SEQ
       seq_timeout   = 5
