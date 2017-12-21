@@ -98,18 +98,19 @@ sudo /etc/init.d/ssh restart
 sudo iptables -F                                                              # Flush existing rules.
 sudo iptables -X                                                              # Delete user defined rules.
 sudo iptables -P INPUT DROP                                                   # Drop all input connections.
-sudo iptables -P OUTPUT DROP                                                  # Accept all output connections.
+sudo iptables -P OUTPUT ACCEPT                                                  # Drop all output connections.
+sudo iptables -P FORWARD DROP                                                 # Drop all forward connections.
 sudo iptables -A INPUT -i lo -j ACCEPT                                        # Allow input on loopback.
-sudo iptables -A OUTPUT -o lo -j ACCEPT                                       # Allow input on loopback.
+#sudo iptables -A OUTPUT -o lo -j ACCEPT                                       # Allow input on loopback.
 sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT   # Don't break established connections.
 sudo iptables -A INPUT -p icmp -j ACCEPT                                      # Allow ping request
-sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT          # Don't break established connections.
+#sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT          # Don't break established connections.
 for i in "${PORT_OPEN[@]}"; do
-  sudo iptables -A INPUT -i $WAN -p tcp --dport $i -j ACCEPT                          # Set specified rules.
-  sudo iptables -A OUPUT -o $WAN -p tcp --sport $i -j ACCEPT                          # Set specified rules.
+  sudo iptables -A INPUT -p tcp --dport $i -j ACCEPT                          # Set specified rules.
+  #sudo iptables -A OUTPUT -p tcp --sport $i -j ACCEPT                          # Set specified rules.
 done
 
-# Docker specify
+# Docker specific
 if [ -z $(docker --version | grep "not found") ]; then   
   # Remove iptables auto-generating capability from docker
   service docker stop
@@ -209,7 +210,7 @@ echo -e "Everything is installed."
 echo -e "Did you generated user's QR code ( yes/no ) ?"
 echo -e "/!\ Ensure that you really did it and save the codes somewhere."
 read -r GO
-if [ "$GO" == "yes"]; then
+if [ "$GO" == "yes" ]; then
   # Activate OTP on login :
   {
     sudo echo " "
