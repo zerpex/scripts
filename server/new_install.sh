@@ -154,7 +154,7 @@ if [ "$CREATE_USER" == "Yes" ]; then
 		((j++))
         verify
 	done
-    echo -e "Groups creation duration: $(time-taken $START)
+    echo -e "Groups creation duration: $(time-taken $START)"
 	echo " "
 fi
 
