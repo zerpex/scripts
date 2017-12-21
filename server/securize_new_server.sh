@@ -207,7 +207,13 @@ sudo fail2ban-client reload
 
 echo -e " "
 echo -e "Everything is installed."
-echo -e "Did you generated user's QR code ( yes/no ) ?"
+echo -e " "
+echo -e "Please, open a second terminal with the user that will use OTP and execute :"
+echo -e "google-authenticator"
+echo -e "It will generate a QR Code that you need to flash using your smartphone and Google authenticator."
+echo -e "Quick answers : y/y/n/y (better read questions before answering :p )"
+echo -e " "
+echo -e "Once done, write 'yes' here :"
 echo -e "/!\ Ensure that you really did it and save the codes somewhere."
 read -r GO
 if [ "$GO" == "yes" ]; then
