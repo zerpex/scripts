@@ -13,6 +13,7 @@ SCRIPT_START=$(date +%s)
 
 # Determine where the script is stored :
 WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH=${WHEREAMI%/*}
 
 # Path of the telegram-notify.sh script :
 TELEGRAM_PATH=${WHEREAMI%/*}/telegram
@@ -34,12 +35,9 @@ LCYAN=$(echo -en '\033[01;36m')
 WHITE=$(echo -en '\033[01;37m')
 END=$(echo -en '\033[0m')
 
-# Test
-#echo ${RED}RED ${GREEN}GREEN ${YELLOW}YELLOW ${BLUE}BLUE ${PURPLE}PURPLE ${CYAN}CYAN ${WHITE}WHITE${RESTORE}
-#echo ${LRED}LRED ${LGREEN}LGREEN ${LYELLOW}LYELLOW ${LBLUE}LBLUE ${LPURPLE}LPURPLE ${LCYAN}LCYAN ${LGRAY}LIGHTGRAY${END}
-
 #--- Define local system variables
 LAN=$(hostname -I | awk '{print $1}')
 WAN=$(dig +short myip.opendns.com @resolver1.opendns.com)
+WAN_INTERFACE=$(route | grep '^default' | grep -o '[^ ]*$')
 FQDN=$(hostname -f)
 HNAME=$(hostname)
