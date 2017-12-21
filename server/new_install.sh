@@ -133,7 +133,6 @@ if [ "$CREATE_GROUP" == "Yes" ]; then
     echo -e "Groups creation duration: $(time-taken $START)
 	echo " "
 fi
-
 # Create users
 if [ "$CREATE_USER" == "Yes" ]; then 
 	j=0
@@ -186,38 +185,6 @@ if [ "$DOCKER_COMPOSE" == "Yes" ]; then
 	echo " "
 fi
 
-if [ "$DOCKER_IPTABLE" == "custom" ]; then 
-	# Remove iptables auto-generating capability from docker
-	service docker stop
-	mkdir -p /etc/systemd/system/docker.service.d/
-	echo -e "[Service]" > /etc/systemd/system/docker.service.d/noiptables.conf
-	echo -e "ExecStart=  " >> /etc/systemd/system/docker.service.d/noiptables.conf
-	echo -e "ExecStart=/usr/bin/dockerd -H fd:// --dns 208.67.222.222 --dns 208.67.220.220 --iptables=false  " >> /etc/systemd/system/docker.service.d/noiptables.conf
-	systemctl daemon-reload
-	service docker start
-	
-	# Set iptables logs :
-	if [ "$FIREWALL_LOG" == "separate" ]; then
-		echo -e ":msg,contains,\"NFI: \" $FIREWALL_LOG_INPUT" > /etc/rsyslog.d/my_iptables.conf
-		echo -e ":msg,contains,\"NFO: \" $FIREWALL_LOG_OUTPUT" >> /etc/rsyslog.d/my_iptables.conf
-		echo -e ":msg,contains,\"NFF: \" $FIREWALL_LOG_FORWARD" >> /etc/rsyslog.d/my_iptables.conf
-		service rsyslog restart
-	fi
-
-	# Install iptables
-	cp iptables_sample.sh /etc/init.d/ip4tables
-	chmod +x /etc/init.d/ip4tables
-	echo -e " "
-	echo -e "---------------------------------------------------------------------------------------------------------"
-	echo -e " NOTE :"
-	echo -e "Firewall rules installed and enabled, but not automatically started on server boot."
-	echo -e "Once you tested and validated the firewall, just execute the following command to enable it on reboot :"
-	echo -e "update-rc.d ip4tables defaults"
-	echo -e "---------------------------------------------------------------------------------------------------------"
-	echo -e " "
-	/etc/init.d/ip4tables
-fi
-  
 # Mount SSHFS volumes
 if [ "$SSHFS" == "Yes" ]; then
 	j=0
@@ -334,15 +301,9 @@ alias dcps='docker-compose ps'
 alias dcdown='docker-compose down'
 EOM
 	fi
-	if [ "$DOCKER_IPTABLE" == "custom" ]; then 
-		cat >> "$(if [ "$OH_MY_ZSH" == "Yes" ]; then echo -n ".zshrc"; else echo -n ".bashrc"; fi)" <<- EOM
-alias dcup="docker-compose up -d; /etc/init.d/ip4tables"
-EOM
-	else
-		cat >> "$(if [ "$OH_MY_ZSH" == "Yes" ]; then echo -n ".zshrc"; else echo -n ".bashrc"; fi)" <<- EOM
+	cat >> "$(if [ "$OH_MY_ZSH" == "Yes" ]; then echo -n ".zshrc"; else echo -n ".bashrc"; fi)" <<- EOM
 alias dcup="docker-compose up -d"
 EOM
-	fi
 done
 
 echo -e " "
