@@ -12,8 +12,7 @@ DATE=$(date +%Y%m%d)
 SCRIPT_START=$(date +%s)
 
 # Determine where the script is stored :
-WHEREAMI="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SCRIPT_PATH=${WHEREAMI%/*}
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Path of the telegram-notify.sh script :
 TELEGRAM_PATH=${WHEREAMI%/*}/telegram
