@@ -47,7 +47,7 @@ else
   echo "# Send telegram message on ssh login :"
   echo "session optional pam_exec.so type=open_session seteuid "$WHEREAMI"/ssh_logon.sh"
 } >> /etc/pam.d/sshd
-  if ! grep -q "ssh_logon.sh" /etc/pam.d/sshd; then
+  if grep -q "ssh_logon.sh" /etc/pam.d/sshd; then
     echo -e "[ ${LGREEN}OK${END} ] The script is activated."
   else
     echo -e "[ ${LRED}KO${END} ] I was not able to activate the script. Please be sure to run the script with root privileges."
