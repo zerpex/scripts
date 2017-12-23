@@ -57,15 +57,28 @@ PORT_KNOCK[1]=8000
 PORT_KNOCK[2]=9000
 PORT_KNOCK[3]=10000
 PORT_KNOCK[4]=11000
-
 ###################################################################################
 #                                     /!\                                         #
 #   /!\  Unless you know exactly what you're doing, do not change anything  /!\   #
-#   /!\ on this file, set your parameters on the file backup_hostname.conf  /!\   #
 #                                     /!\                                         #
-##################################################################################
+###################################################################################
 
 WAN=$(route | grep '^default' | grep -o '[^ ]*$')
+
+echo -e " "
+echo -e "/!\ At this point, this script does NOT check if this tools are installed /!\ "
+echo -e "Please ensure that :"
+echo -e " - ssh is set with default values."
+echo -e " - you don't have iptables specific rules (or you'll have to reset them)."
+echo -e " - Docker is installed."
+echo -e "Write 'yes' if it's ok :"
+read -r OKTOGO
+echo -e " "
+
+if [ "$OKTOGO" != "yes" ]; then
+  echo -e "See ya !"
+  exit 0
+fi
 
 # Install needed softwares :
 sudo apt update
