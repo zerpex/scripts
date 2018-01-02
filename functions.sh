@@ -6,8 +6,8 @@ time_convert () {
   DAYS_TAKEN=$((SECS/86400))
   if [ "$DAYS_TAKEN" -ne "0" ]; then
      DAYS_DISPLAYED=""$DAYS_TAKEN"d & "
-     echo "$DAYS_DISPLAYED"$(date -d "1970-01-01 + $SECS seconds" "+%-Hh %-Mmn %-Ss")
   fi
+  echo "$DAYS_DISPLAYED"$(date -d "1970-01-01 + $SECS seconds" "+%-Hh %-Mmn %-Ss")
 }
 
 # Function to determine time taken to complete decryption/extraction
