@@ -194,7 +194,7 @@ echo -e "Total backup duration: $(time_since $START_TOTAL)"
 # Start services if needed :
 if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
    if [ "$COLD_SCRIPT" == "Yes" ]; then
-      source "$COLD_SCRIPT_FILE"
+      source "$WHEREAMI"/"$COLD_SCRIPT_FILE"
    fi
    for i in "${COLD_SERVICE[@]}"; do
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" started."
@@ -223,7 +223,7 @@ echo -e "Total compression duration: $(time_since $START_TOTAL)"
 
 # Remove older archives than wanted :
 while [ "$(ls "$ARCHIVES" | wc -l)" -gt "$RETENTION" ]; do
-   OLDEST=$(ls -tr "$ARCHIVES" | head -1)
+   OLDEST="$ARCHIVES"/"$(ls -tr "$ARCHIVES" | head -1)"
    rm -r "$OLDEST"
    echo -e ""$OLDEST" removed."
 done
