@@ -107,7 +107,8 @@ sudo apt -y install iptables iptables-persistent knockd fail2ban libpam-google-a
 #     SSH     #
 ###############
 
-sudo sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                                    # Change ssh port
+sudo sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                     # Change ssh port
+sudo sed -i "s/Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                      # Change ssh port for other cases
 sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config      # Desactivate root login 
 
 # Tell sshd which users are alllowed to log in :
