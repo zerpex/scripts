@@ -81,6 +81,7 @@ if [ ! -f /etc/debian_version ]; then
 fi
 
 WAN=$(route | grep '^default' | grep -o '[^ ]*$')
+DEBIAN_FRONTEND='noninteractive'
 
 echo -e " "
 echo -e "/!\ At this point, this script does NOT check if this tools are installed /!\ "
