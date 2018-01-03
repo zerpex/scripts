@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Exit script if system is not debian based
+is_debian_based() {
+  if [ ! -f /etc/debian_version ]; then
+    echo -e "${LRED}[ ERR ]${END} This script has been writen for Debian-based distros."
+    exit 0
+  fi
+}
+
+# Check if a package is installed
+# $1 = Package to check
+# 0 = No
+# 1 = Yes
+is_package_installed() {
+  if [[ ! -z $1  ]]; then
+    echo $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c ' installed')
+  fi
+}
+
 # Function to convert time in seconds to be human readable
 time_convert () {
   SECS="$1"
