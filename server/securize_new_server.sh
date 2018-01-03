@@ -13,8 +13,9 @@
 #      - Restrict allowed users to a specified list
 #  2- Configure a basic firewall with iptables.
 #  3- Configure port knocking to hide the real ssh port.
-#  4- Install a ssh honeypot on port 22 (requires docker).
-#  5- Install and configure fail2ban.
+#  4- Install and configure portsentry.
+#  5- Install a ssh honeypot on port 22 (requires docker).
+#  6- Install and configure fail2ban.
 #
 # HOW TO USE THIS SCRIPT :
 #-------------------------
@@ -58,6 +59,15 @@ PORT_KNOCK[2]=9000
 PORT_KNOCK[3]=10000
 PORT_KNOCK[4]=11000
 
+# Portsentry ignore IPs:
+PORTSENTRY_IGNORE[0]=8.8.8.8
+PORTSENTRY_IGNORE[1]=8.8.4.4
+
+# Telegram messaging:
+# ( See https://github.com/zerpex/scripts/tree/master/telegram for script and how to. )
+TELEGRAM=Yes                                                 # Send messages through telegram ( Yes / No ) ?
+TELEGRAM_PATH=/data/scripts/telegram/telegram_notify.sh      # Full path to telegram script to send messages.
+
 ###################################################################################
 #                                     /!\                                         #
 #   /!\  Unless you know exactly what you're doing, do not change anything  /!\   #
@@ -91,7 +101,7 @@ fi
 sudo apt update
 sudo echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
 sudo echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
-sudo apt -y install iptables iptables-persistent knockd fail2ban libpam-google-authenticator
+sudo apt -y install iptables iptables-persistent knockd fail2ban libpam-google-authenticator portsentry
 
 ###############
 #     SSH     #
@@ -108,7 +118,7 @@ sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config   
 } >> /etc/ssh/sshd_config
 
 # Restart ssh :
-sudo /etc/init.d/ssh restart
+sudo systemctl restart ssh
 
 ###############
 #  iptables   #
@@ -189,7 +199,30 @@ sudo cat knockd.tmp > /etc/knockd.conf && rm knockd.tmp
 sudo sed -i 's/START_KNOCKD=0/START_KNOCKD=1/g' /etc/default/knockd
 
 # Start knockd :
-sudo /etc/init.d/knockd start
+sudo systemctl start knockd
+
+###############
+# Portsentry  #
+###############
+
+# Add white-listed IPs to ignore list:
+for i in "${PORTSENTRY_IGNORE[@]}"; do
+  echo $i >> /etc/portsentry/portsentry.ignore
+done
+
+# Change mode to auto (more efficient):
+sudo sed -i 's/TCP_MODE="tcp"/TCP_MODE="atcp"/g' /etc/default/portsentry
+sudo sed -i 's/UDP_MODE="udp"/UDP_MODE="audp"/g' /etc/default/portsentry
+
+# Enable scanports detection:
+sudo sed -i 's/BLOCK_TCP="0"/BLOCK_TCP="1"/g' /etc/portsentry/portsentry.conf
+sudo sed -i 's/BLOCK_UDP="0"/BLOCK_UDP="1"/g' /etc/portsentry/portsentry.conf
+
+# Send a message through telegram:
+sudo echo "KILL_RUN_CMD=\"$TELEGRAM_PATH/telegram_notify.sh --error --text \$TARGET$ \$PORT$ \$MODE$\"" >> /etc/portsentry/portsentry.conf
+
+# Restart service:
+sudo systemctl restart portsentry
 
 ###############
 #  honeypot   #
