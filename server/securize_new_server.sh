@@ -57,11 +57,18 @@ PORT_KNOCK[1]=8000
 PORT_KNOCK[2]=9000
 PORT_KNOCK[3]=10000
 PORT_KNOCK[4]=11000
+
 ###################################################################################
 #                                     /!\                                         #
 #   /!\  Unless you know exactly what you're doing, do not change anything  /!\   #
 #                                     /!\                                         #
 ###################################################################################
+
+# Check is linux is Debian based:
+if [ ! -f /etc/debian_version ]; then
+  echo -e "[ ERR ] This script has been writen for Debian-based distros."
+  exit 0
+fi
 
 WAN=$(route | grep '^default' | grep -o '[^ ]*$')
 
