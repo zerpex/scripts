@@ -181,7 +181,7 @@ for i in "${BCK_TARGET[@]}"; do
       tar cf \
           "${BCK_FILE[$j]}" \
           "${EXCLUDES[@]}" \
-          -g "$BCK_DIR"/"$SNAP_DIR"/"$FOLDER".snar \
+          -g "$BCK_DIR"/"$SNAP_DIR"/"${FOLDER[$j]}".snar \
           "$i"
 	  ((j++))
    fi
