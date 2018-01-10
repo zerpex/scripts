@@ -64,7 +64,9 @@ echo "- Drives:"
 
 for d in $(lsblk -o NAME,TYPE | grep disk | awk '{print $1}'); do
   CAPACITY=$(fdisk -l /dev/$d | grep "/dev/$d:" | awk '{print $3$4}' | rev | cut -c 4- | rev)
+  TYPE=$(if [ "$(cat /sys/block/nbd0/queue/rotational)" == "1" ]; then echo "HDD"; else echo "SSD"; fi)
   echo "   /dev/$d:     $CAPACITY"
+  echo "       type:     $TYPE"
   lsblk /dev/$d -o NAME,SIZE,MOUNTPOINT | grep -v "$d \|NAME" | sed 's/^/         /'
 done
 echo ""
