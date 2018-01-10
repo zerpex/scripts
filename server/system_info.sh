@@ -4,9 +4,9 @@
 # -Hostname information:
 echo -e "\e[31;43m***** HOSTNAME INFORMATION *****\e[0m"
 hostnamectl
-echo ""
-echo "            Uptime: $(uptime | awk '{print $3" "$4" "$5}' | awk -F"," '{print $1" & "$2}')"
-echo "      $(uptime | awk '{ for (i=8; i<=NF; i++) printf $i" " }')"
+echo "            Uptime: $(uptime | awk '{print $3}' | awk -F"," '{print $1" & "$2}')"
+echo "      Load average: $(uptime | awk '{ for (i=8; i<=NF; i++) printf $i" " }')"
+echo "             Users: $(uptime | awk -F"," '{print $2}')"
 echo ""
 
 
