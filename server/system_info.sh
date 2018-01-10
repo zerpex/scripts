@@ -5,9 +5,9 @@
 echo -e "\e[31;43m***** HOSTNAME INFORMATION *****\e[0m"
 hostnamectl
 echo "       Server type: $(if [ -z "$(dmesg | grep Hypervisor)" ]; then echo "Physical"; else echo "Virtual"; fi)"
-echo "            Uptime: $(uptime | awk '{print $3}' | awk -F"," '{print $1" & "$2}')"
+echo "            Uptime: $(uptime | awk '{print $3}' | awk -F"," '{print $1}')"
 echo "      Load average: $(uptime | awk '{ for (i=8; i<=NF; i++) printf $i" " }')"
-echo "             Users: $(uptime | awk '{print $4}') ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
+echo "   Users connected: $(uptime | awk '{print $4}') ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
 echo ""
 
 
