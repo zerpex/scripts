@@ -95,6 +95,8 @@ apt -y install \
 	echo -n "smartmontools "; \
 	echo -n "smem "; \
 	echo -n "ncdu "; \
+	echo -n "ntp "; \
+	echo -n "ntpdate "; \
   fi) \
   $(if [ "$NETWORK_TOOLS" == "Yes" ]; then  \
 	echo -n "dnsutils "; \
