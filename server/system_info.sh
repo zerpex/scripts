@@ -7,7 +7,7 @@ hostnamectl
 echo "       Server type: $(if [ -z "$(dmesg | grep Hypervisor)" ]; then echo "Physical"; else echo "Virtual"; fi)"
 echo "            Uptime: $(uptime | awk '{print $3}' | awk -F"," '{print $1}')"
 echo "      Load average: $(uptime | awk '{ for (i=8; i<=NF; i++) printf $i" " }')"
-echo "   Users connected: $(uptime | awk '{print $4}') ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
+echo "   Users connected: $(who | wc -l) ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
 echo ""
 
 
