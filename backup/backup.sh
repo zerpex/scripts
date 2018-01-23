@@ -209,7 +209,7 @@ fi
 # Compress files if needed :
 START_TOTAL=$(date +%s)
 if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then
-   for i in "$(ls "$BCK_DIR"/*.tar)"; do
+   for i in ls "$BCK_DIR"/*.tar; do
       START=$(date +%s)
       SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed."
       FAILED="[ ${LRED}KO${END} ] "$i" was not compressed."
