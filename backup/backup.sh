@@ -200,7 +200,7 @@ if [ "$BCK_TYPE" == "FULL" ] && [ "$COLD_BCK" == "Yes" ]; then
       SUCCESS="[ ${LGREEN}OK${END} ] Service "$i" started."
       FAILED="[ ${LRED}KO${END} ] Service "$i" did not start as expected."
       /etc/init.d/"$i" start
-	  verify
+      verify
    done
    # If using check_websites.sh, enable it back :
    echo "$( crontab -l | sed '/.*check_websites.sh/s/^#//' )" | crontab
@@ -209,13 +209,13 @@ fi
 # Compress files if needed :
 START_TOTAL=$(date +%s)
 if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then
-   for i in "$(ls "$BCK_DIR"/*.tar)"; do
+   for i in ls "$BCK_DIR"/*.tar; do
       START=$(date +%s)
       SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed."
       FAILED="[ ${LRED}KO${END} ] "$i" was not compressed."
       $COMPRESS $i
-	  if [ "$COMPRESSION" == "lzma" ]; then rm $i; fi
-	  verify
+      if [ "$COMPRESSION" == "lzma" ]; then rm $i; fi
+      verify
       echo -e "$i compression duration: $(time_since $START)"
    done
 fi
@@ -255,9 +255,8 @@ if [ "$SEND_TELEGRAM_MSG" == "Yes" ]; then
   for i in "${FOLDER[@]}"; do
      BCK_FILE_SIZE=$(ls -lash "${BCK_FILE[$j]}""$EXT" | awk '{print $6}')
      MSG_DATA+=(- $i: $BCK_FILE_SIZE\\n)
-	 ((j++))
+     ((j++))
   done
   MSG="Backup finished !\n$(time_since $SCRIPT_START)\nBackuped archives: \n${MSG_DATA[@]}"
-	telegram success "$MSG" /var/log/backup.log
-  #$TELEGRAM_PATH/telegram_notify.sh --success --text "$MSG" --document /var/log/backup.log
+  telegram success "$MSG" /var/log/backup.log
 fi
