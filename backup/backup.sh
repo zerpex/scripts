@@ -216,7 +216,7 @@ if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESS
       $COMPRESS $i
       if [ "$COMPRESSION" == "lzma" ]; then rm $i; fi
       verify
-      echo -e "$i compression duration: $(time_since $START)"
+      echo -e "compression duration: $(time_since $START)"
    done
 fi
 echo -e "Total compression duration: $(time_since $START_TOTAL)"
