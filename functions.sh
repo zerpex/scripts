@@ -33,20 +33,15 @@ time_since () {
   NOW=$(date +%s)
   DIFF=$(( $NOW - $1 ))
   echo -e "Task duration: $(time_convert $DIFF)."
-  echo -e " "
 }
 
 # Function to verify previous task completed successfully
 verify () {
   if [ $? -eq 0 ]
   then
-    echo -e " "
     echo -e "${SUCCESS}"
-    echo -e " "
   else
-    echo -e " "
     echo -e "${FAILED}" 1>&2
-    echo -e " "
     if [ "$1" == "exit" ]; then
       exit 1
     fi
