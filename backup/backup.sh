@@ -171,8 +171,6 @@ j=0
 START_TOTAL=$(date +%s)
 for i in "${BCK_TARGET[@]}"; do
    START=$(date +%s)
-   SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull."
-   FAILED="[ ${LRED}KO${END} ] "$i"'s backup terminated with exceptions."
    FOLDER[$j]="$(echo "$i" | awk -F/ '{print $3}')"
    if [ "$BCK_METHOD" == "Copy" ]; then
       cp -r "$i" "$BCK_DIR"/
@@ -185,8 +183,9 @@ for i in "${BCK_TARGET[@]}"; do
           "$i"
 	  ((j++))
    fi
+   SUCCESS="[ ${LGREEN}OK${END} ] Backup of "$i" successfull and took $(time_since $START)."
+   FAILED="[ ${LRED}KO${END} ] "$i"'s backup terminated with exceptions and took $(time_since $START)."
    verify
-   echo -e "$i backup duration: $(time_since $START)"
 done
 echo -e " "
 echo -e "Total backup duration: $(time_since $START_TOTAL)"
@@ -211,12 +210,11 @@ START_TOTAL=$(date +%s)
 if [ "$COMPRESSION" == "gzip" ] || [ "$COMPRESSION" == "bzip2" ] || [ "$COMPRESSION" == "lzma" ]; then
    for i in ls "$BCK_DIR"/*.tar; do
       START=$(date +%s)
-      SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed."
-      FAILED="[ ${LRED}KO${END} ] "$i" was not compressed."
       $COMPRESS $i
       if [ "$COMPRESSION" == "lzma" ]; then rm $i; fi
+      SUCCESS="[ ${LGREEN}OK${END} ] "$i" compressed in $(time_since $START)."
+      FAILED="[ ${LRED}KO${END} ] "$i" was not compressed."
       verify
-      echo -e "compression duration: $(time_since $START)"
    done
 fi
 echo -e "Total compression duration: $(time_since $START_TOTAL)"
@@ -234,14 +232,13 @@ if [ "$SYNCRONIZATION" == "Yes" ]; then
    echo ${LCYAN}-- Synchronizations :${END}
    for i in "${BCK_SYNC[@]}"; do
       START=$(date +%s)
-      SUCCESS="[ ${LGREEN}OK${END} ] Synchronization with "$i" is successfull."
-      FAILED="[ ${LRED}KO${END} ] Synchronization with "$i" is KO."
       rsync -rtuv --delete-after "$BACKUP_DIR"/"$HNAME" "$i"
       if [ "$DIST_BCK" == "Yes" ]; then
          rsync -rtuv --delete-after "$i"/"$DIST_HOST" "$BACKUP_DIR"
       fi
+      SUCCESS="[ ${LGREEN}OK${END} ] Synchronization with "$i" is successfull and took $(time_since $START)."
+      FAILED="[ ${LRED}KO${END} ] Synchronization with "$i" is KO and took $(time_since $START)."
       verify
-      echo -e "$i synchonization duration: $(time_since $START)"
    done
 fi
 
