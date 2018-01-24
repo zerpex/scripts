@@ -177,8 +177,9 @@ fi
 # Install docker-compose
 if [ "$DOCKER_COMPOSE" == "Yes" ]; then 
 	echo ${LCYAN}-- Docker-compose installation${END}
-	DOCKER_COMPOSE_VERSION="${DOCKER_COMPOSE_VERSION:-$(curl https://github.com/docker/compose/releases | grep releases/tag | grep -v rc | awk -F">" '{print $2}' | awk -F"<" '{print $1}' | head -1)}"
+	DOCKER_COMPOSE_VERSION="$(curl https://github.com/docker/compose/releases/latest 2> /dev/null | sed 's#.*tag/##;s#">.*##')"
 	curl -L https://github.com/docker/compose/releases/download/"$DOCKER_COMPOSE_VERSION"/docker-compose-"$(uname -s)"-"$(uname -m)" > /usr/local/bin/docker-compose
+	curl -L https://raw.githubusercontent.com/docker/compose/${COMPOSE_VERSION}/contrib/completion/bash/docker-compose > /etc/bash_completion.d/docker-compose
 	chmod +x /usr/local/bin/docker-compose
 	if [ -z "$(docker-compose --version | grep "not found")" ];
 		then echo -e "[ ${LGREEN}OK${END} ] Docker installed"
