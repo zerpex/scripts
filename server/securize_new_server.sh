@@ -164,6 +164,9 @@ sudo iptables -A INPUT -j DROP                                                # 
 sudo netfilter-persistent save         # Save rules.
 sudo netfilter-persistent reload       # Reload rules.
 
+sudo systemctl stop docker
+sudo systemctl start docker
+
 ###############
 #   knockd    #
 ###############
