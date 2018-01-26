@@ -4,7 +4,15 @@
 is_debian_based() {
   if [ ! -f /etc/debian_version ]; then
     echo -e "${LRED}[ ERR ]${END} This script has been writen for Debian-based distros."
-    exit 0
+    exit 1
+  fi
+}
+
+# Exit if not root or sudo:
+is_root() {
+  if [[ $(id -u) -ne 0 ]] ; then 
+    echo 'Please run me as root or with sudo'
+    exit 1
   fi
 }
 
