@@ -77,7 +77,13 @@ TELEGRAM_PATH=/data/scripts/telegram/telegram_notify.sh      # Full path to tele
 # Check is linux is Debian based:
 if [ ! -f /etc/debian_version ]; then
   echo -e "[ ERR ] This script has been writen for Debian-based distros."
-  exit 0
+  exit 1
+fi
+
+# Check if root or sudo:
+if [[ $(id -u) -ne 0 ]] ; then 
+  echo 'Please run me as root or with sudo'
+  exit 1
 fi
 
 WAN=$(route | grep '^default' | grep -o '[^ ]*$')
@@ -99,47 +105,47 @@ if [ "$OKTOGO" != "yes" ]; then
 fi
 
 # Install needed softwares :
-sudo apt update
-sudo echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
-sudo echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
-sudo apt -y install iptables iptables-persistent knockd fail2ban libpam-google-authenticator portsentry
+apt update
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
+apt -y install iptables iptables-persistent knockd fail2ban libpam-google-authenticator portsentry
 
 ###############
 #     SSH     #
 ###############
 
-sudo sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                     # Change ssh port
-sudo sed -i "s/Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                      # Change ssh port for other cases
-sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config      # Desactivate root login 
+sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                     # Change ssh port
+sed -i "s/Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config                      # Change ssh port for other cases
+sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config      # Desactivate root login 
 
 # Tell sshd which users are alllowed to log in :
 {
-  sudo echo " "
-  sudo echo "# Users allowed to use ssh :"
-  sudo echo "AllowUsers "$SSH_USER""
+  echo " "
+  echo "# Users allowed to use ssh :"
+  echo "AllowUsers "$SSH_USER""
 } >> /etc/ssh/sshd_config
 
 # Restart ssh :
-sudo systemctl restart ssh
+systemctl restart ssh
 
 ###############
 #  iptables   #
 ###############
 
 # Base iptables rules :
-sudo iptables -F                                                              # Flush existing rules.
-sudo iptables -X                                                              # Delete user defined rules.
-sudo iptables -P INPUT DROP                                                   # Drop all input connections.
-sudo iptables -P OUTPUT ACCEPT                                                  # Drop all output connections.
-sudo iptables -P FORWARD DROP                                                 # Drop all forward connections.
-sudo iptables -A INPUT -i lo -j ACCEPT                                        # Allow input on loopback.
-#sudo iptables -A OUTPUT -o lo -j ACCEPT                                       # Allow input on loopback.
-sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT   # Don't break established connections.
-sudo iptables -A INPUT -p icmp -j ACCEPT                                      # Allow ping request
-#sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT          # Don't break established connections.
+iptables -F                                                              # Flush existing rules.
+iptables -X                                                              # Delete user defined rules.
+iptables -P INPUT DROP                                                   # Drop all input connections.
+iptables -P OUTPUT ACCEPT                                                  # Drop all output connections.
+iptables -P FORWARD DROP                                                 # Drop all forward connections.
+iptables -A INPUT -i lo -j ACCEPT                                        # Allow input on loopback.
+#iptables -A OUTPUT -o lo -j ACCEPT                                       # Allow input on loopback.
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT   # Don't break established connections.
+iptables -A INPUT -p icmp -j ACCEPT                                      # Allow ping request
+#iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT          # Don't break established connections.
 for i in "${PORT_OPEN[@]}"; do
-  sudo iptables -A INPUT -p tcp --dport $i -j ACCEPT                          # Set specified rules.
-  #sudo iptables -A OUTPUT -p tcp --sport $i -j ACCEPT                          # Set specified rules.
+  iptables -A INPUT -p tcp --dport $i -j ACCEPT                          # Set specified rules.
+  #iptables -A OUTPUT -p tcp --sport $i -j ACCEPT                          # Set specified rules.
 done
 
 # # Docker specific
@@ -155,17 +161,17 @@ done
   # systemctl daemon-reload
   # service docker start
   # # Add rules for docker to work:
-  # sudo iptables -A FORWARD -i docker0 -o $WAN -j ACCEPT -m comment --comment "Docker forwaring"
-  # sudo iptables -A FORWARD -i $WAN -o docker0 -j ACCEPT -m comment --comment "Docker forwaring"
+  # iptables -A FORWARD -i docker0 -o $WAN -j ACCEPT -m comment --comment "Docker forwaring"
+  # iptables -A FORWARD -i $WAN -o docker0 -j ACCEPT -m comment --comment "Docker forwaring"
 # fi
 
-sudo iptables -A INPUT -j DROP                                                # Drop anything else
+iptables -A INPUT -j DROP                                                # Drop anything else
 
-sudo netfilter-persistent save         # Save rules.
-sudo netfilter-persistent reload       # Reload rules.
+netfilter-persistent save         # Save rules.
+netfilter-persistent reload       # Reload rules.
 
-sudo systemctl stop docker
-sudo systemctl start docker
+systemctl stop docker
+systemctl start docker
 
 ###############
 #   knockd    #
@@ -198,13 +204,13 @@ sed -i "s/WAN/$WAN/g" knockd.tmp
 sed -i "s/KNOCK_SEQ/$KNOCK_SEQ/g" knockd.tmp
 sed -i "s/SSH_PORT/$SSH_PORT/g" knockd.tmp
 
-sudo cat knockd.tmp > /etc/knockd.conf && rm knockd.tmp
+cat knockd.tmp > /etc/knockd.conf && rm knockd.tmp
 
 # Set autostart for knockd :
-sudo sed -i 's/START_KNOCKD=0/START_KNOCKD=1/g' /etc/default/knockd
+sed -i 's/START_KNOCKD=0/START_KNOCKD=1/g' /etc/default/knockd
 
 # Start knockd :
-sudo systemctl start knockd
+systemctl start knockd
 
 ###############
 # Portsentry  #
@@ -216,26 +222,26 @@ for i in "${PORTSENTRY_IGNORE[@]}"; do
 done
 
 # Change mode to auto (more efficient):
-sudo sed -i 's/TCP_MODE="tcp"/TCP_MODE="atcp"/g' /etc/default/portsentry
-sudo sed -i 's/UDP_MODE="udp"/UDP_MODE="audp"/g' /etc/default/portsentry
+sed -i 's/TCP_MODE="tcp"/TCP_MODE="atcp"/g' /etc/default/portsentry
+sed -i 's/UDP_MODE="udp"/UDP_MODE="audp"/g' /etc/default/portsentry
 
 # Enable scanports detection:
-sudo sed -i 's/BLOCK_TCP="0"/BLOCK_TCP="1"/g' /etc/portsentry/portsentry.conf
-sudo sed -i 's/BLOCK_UDP="0"/BLOCK_UDP="1"/g' /etc/portsentry/portsentry.conf
+sed -i 's/BLOCK_TCP="0"/BLOCK_TCP="1"/g' /etc/portsentry/portsentry.conf
+sed -i 's/BLOCK_UDP="0"/BLOCK_UDP="1"/g' /etc/portsentry/portsentry.conf
 
 # Send a message through telegram:
-sudo echo "KILL_RUN_CMD=\"$TELEGRAM_PATH/telegram_notify.sh --error --text \$TARGET$ \$PORT$ \$MODE$\"" >> /etc/portsentry/portsentry.conf
+echo "KILL_RUN_CMD=\"$TELEGRAM_PATH/telegram_notify.sh --error --text \$TARGET$ \$PORT$ \$MODE$\"" >> /etc/portsentry/portsentry.conf
 
 # Restart service:
-sudo systemctl restart portsentry
+systemctl restart portsentry
 
 ###############
 #  honeypot   #
 ###############
 
 if [ -z $(docker --version | grep "not found") ]; then   
-  sudo docker pull txt3rob/docker-ssh-honey
-  sudo docker run -d -m 256m --cpus=".5" -p 22:22 --name ssh-honeypot_droberson txt3rob/docker-ssh-honey
+  docker pull txt3rob/docker-ssh-honey
+  docker run -d -m 256m --cpus=".5" -p 22:22 --name ssh-honeypot_droberson txt3rob/docker-ssh-honey
 else
   echo " "
   echo -e "/!\ Can't use honeypot : Docker is NOT installed :"
@@ -250,13 +256,13 @@ fi
 #  Fail2ban   #
 ###############
 
-sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 
-sudo sed -i "s/bantime  = 600/bantime  = $F2B_BAN_TIME/g" /etc/fail2ban/jail.local
-sudo sed -i "s/maxretry = 5/maxretry = $F2B_RETRY/g" /etc/fail2ban/jail.local
-sudo sed -i "s/port    = ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
+sed -i "s/bantime  = 600/bantime  = $F2B_BAN_TIME/g" /etc/fail2ban/jail.local
+sed -i "s/maxretry = 5/maxretry = $F2B_RETRY/g" /etc/fail2ban/jail.local
+sed -i "s/port    = ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
 
-sudo fail2ban-client reload
+fail2ban-client reload
 
 ###############
 #  Finishing  #
@@ -276,14 +282,14 @@ read -r GO
 if [ "$GO" == "yes" ]; then
   # Activate OTP on login :
   {
-    sudo echo " "
-    sudo echo "# Activate One Time Password on login :"
-    sudo echo "    auth required pam_google_authenticator.so"
+    echo " "
+    echo "# Activate One Time Password on login :"
+    echo "    auth required pam_google_authenticator.so"
   } >> /etc/pam.d/sshd
-  sudo sed -i "s/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g" /etc/ssh/sshd_config
+  sed -i "s/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g" /etc/ssh/sshd_config
 
   # Restart ssh :
-  sudo /etc/init.d/ssh restart
+  /etc/init.d/ssh restart
   echo " "
   echo -e "OTP was activated."
 else
