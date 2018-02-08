@@ -28,7 +28,8 @@ OVERALL=0;
 for DIR in `find /proc/ -maxdepth 1 -type d -regex "^/proc/[0-9]+"`;
 do
     PID=`echo $DIR | cut -d / -f 3`
-    PROGNAME=`ps -p $PID -o comm --no-headers`
+    #PROGNAME=`ps -p $PID -o comm --no-headers`
+    PROGNAME=`ps -p $PID -o args --no-headers | cut -c -150`
 
     for SWAP in `grep Swap $DIR/smaps 2>/dev/null| awk '{ print $2 }'`
     do
@@ -45,9 +46,10 @@ do
     let OVERALL=$OVERALL+$SUM
     SUM=0
 done
+OVERALL=$(expr $OVERALL / 1024)
 echo "${OVERALL}" > ${TMP}/${SCRIPT_NAME}.overal;
 echo;
-echo "Overall swap used: ${OVERALL} kB";
+echo "Overall swap used: ${OVERALL} Mio";
 echo "========================================";
 case "${SORT}" in
     name )
@@ -57,15 +59,15 @@ case "${SORT}" in
         ;;
 
     kb )
-        echo -e "kB\tpid\tname";
+        echo -e "Mio\tpid\tname";
         echo "========================================";
-        cat ${TMP}/${SCRIPT_NAME}.kb|sort -rh;
+        cat ${TMP}/${SCRIPT_NAME}.kb|sort -rh|head -n 21| awk '{printf("%.2f \t"$2"\t"$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"\n", $1/=1024)}';
         ;;
 
     pid | * )
         echo -e "pid\tkB\tname";
         echo "========================================";
-        cat ${TMP}/${SCRIPT_NAME}.pid|sort -rh;
+        cat ${TMP}/${SCRIPT_NAME}.pid|sort -rh|head -n 21;
         ;;
 esac
 rm -fR "${TMP}/";
