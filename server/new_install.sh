@@ -118,6 +118,12 @@ apt -y install \
 	echo -n "ca-certificates "; \
 	echo -n "gnupg2 "; \
 	echo -n "software-properties-common "; \
+  fi) \
+  $(if [ "$DOCKER_DEVICEMAPPER" == "Yes" ]; then  \
+	echo -n "lvm2 "; \
+	echo -n "thin-provisioning-tools "; \
+	echo -n "udev "; \
+	echo -n "libudev-dev "; \
   fi) 
 
 # Create groups
@@ -163,6 +169,42 @@ fi
 
 # Install docker
 if [ "$DOCKER" == "Yes" ]; then 
+ if [ "$DOCKER_DEVICEMAPPER" == "Yes" ]; then 
+    pvcreate $DOCKER_LVM_DEVICE
+    vgcreate docker $DOCKER_LVM_DEVICE
+    lvcreate --wipesignatures y -n thinpool docker -L $DOCKER_LVM_VOLUME_SIZE
+    lvcreate --wipesignatures y -n thinpoolmeta docker -L $DOCKER_META_LVM_VOLUME_SIZE
+
+    lvconvert -y \
+    --zero n \
+    -c 512K \
+    --thinpool docker/thinpool \
+    --poolmetadata docker/thinpoolmeta
+
+    mkdir -p /etc/lvm/profile
+    cat >> /etc/lvm/profile/docker-thinpool.profile <<- EOM
+activation {
+  thin_pool_autoextend_threshold=80
+  thin_pool_autoextend_percent=20
+}
+EOM
+
+    lvchange --metadataprofile docker-thinpool docker/thinpool
+    lvs -o+seg_monitor
+
+    mkdir -p /etc/docker
+
+    cat >> /etc/docker/daemon.json <<- EOM
+{
+    "storage-driver": "devicemapper",
+    "storage-opts": [
+    "dm.thinpooldev=/dev/mapper/docker-thinpool",
+    "dm.use_deferred_removal=true",
+    "dm.use_deferred_deletion=true"
+    ]
+}
+EOM
+    fi
 	echo ${LCYAN}-- Docker installation${END}
 	curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add 
 	add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
