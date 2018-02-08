@@ -90,7 +90,7 @@ apt -y install \
 	echo -n "locate "; \
 	echo -n "wget "; \
 	echo -n "pwgen "; \
-	echo -n "apache2-utils"; \
+	echo -n "apache2-utils "; \
 	echo -n "git "; \
 	echo -n "curl "; \
 	echo -n "smartmontools "; \
