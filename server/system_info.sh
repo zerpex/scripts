@@ -58,7 +58,7 @@ for i in $(grep "physical id" /proc/cpuinfo | sort -u | awk '{print $1}'); do
 done
 echo ""
 echo "- Memory:"
-echo "        RAM: "$MEM_GO" Gio in $MEM_DETAIL ( Used: "$(free | grep Mem | awk '{print $3/$2 * 100.0}' | awk '{printf("%.2f\n", $1)}')"% )"
+echo "        RAM: "$MEM_GO" Gio $(dmidecode --type 17 | grep Type: | sort -u | awk '{print $2}') in $MEM_DETAIL ( Used: "$(free | grep Mem | awk '{print $3/$2 * 100.0}' | awk '{printf("%.2f\n", $1)}')"% )"
 echo "       SWAP: "$SWAP_MO" Mio ( Used: "$(free | grep Swap | awk '{print $3/$2 * 100.0}' | awk '{printf("%.2f\n", $1)}')"% )"
 echo ""
 echo "- Drives:"
