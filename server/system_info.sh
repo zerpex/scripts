@@ -7,7 +7,7 @@ hostnamectl
 echo "       Server type: $(if [ -z "$(dmesg | grep Hypervisor)" ]; then echo "Physical"; else echo "Virtual"; fi)"
 echo "            Uptime: $(uptime | awk '{print $3}' | awk -F"," '{print $1}')"
 echo "      Load average: $(uptime | awk '{ for (i=8; i<=NF; i++) printf $i" " }')"
-echo "   Users connected: $(uptime | awk '{print $4}') ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
+echo "   Users connected: $(who | wc -l) ( $(for i in $(who -q | grep -v "#"); do echo -n "$i "; done))"
 echo ""
 
 
@@ -65,7 +65,7 @@ echo "- Drives:"
 
 for d in $(lsblk -o NAME,TYPE | grep disk | awk '{print $1}'); do
   CAPACITY=$(fdisk -l /dev/$d | grep "/dev/$d:" | awk '{print $3$4}' | rev | cut -c 4- | rev)
-  TYPE=$(if [ "$(cat /sys/block/nbd0/queue/rotational)" == "1" ]; then echo "HDD"; else echo "SSD"; fi)
+  TYPE=$(if [ "$(cat /sys/block/$d/queue/rotational)" == "1" ]; then echo "HDD"; else echo "SSD"; fi)
   echo "   /dev/$d:     $CAPACITY ( $TYPE )"
   lsblk /dev/$d -o NAME,SIZE,MOUNTPOINT | grep -v "$d \|NAME" | sed 's/^/         /'
 done

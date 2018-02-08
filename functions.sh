@@ -4,7 +4,15 @@
 is_debian_based() {
   if [ ! -f /etc/debian_version ]; then
     echo -e "${LRED}[ ERR ]${END} This script has been writen for Debian-based distros."
-    exit 0
+    exit 1
+  fi
+}
+
+# Exit if not root or sudo:
+is_root() {
+  if [[ $(id -u) -ne 0 ]] ; then 
+    echo 'Please run me as root or with sudo'
+    exit 1
   fi
 }
 
@@ -33,20 +41,15 @@ time_since () {
   NOW=$(date +%s)
   DIFF=$(( $NOW - $1 ))
   echo -e "Task duration: $(time_convert $DIFF)."
-  echo -e " "
 }
 
 # Function to verify previous task completed successfully
 verify () {
   if [ $? -eq 0 ]
   then
-    echo -e " "
     echo -e "${SUCCESS}"
-    echo -e " "
   else
-    echo -e " "
     echo -e "${FAILED}" 1>&2
-    echo -e " "
     if [ "$1" == "exit" ]; then
       exit 1
     fi
