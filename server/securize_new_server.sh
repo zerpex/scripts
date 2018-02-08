@@ -230,7 +230,11 @@ sed -i 's/BLOCK_TCP="0"/BLOCK_TCP="1"/g' /etc/portsentry/portsentry.conf
 sed -i 's/BLOCK_UDP="0"/BLOCK_UDP="1"/g' /etc/portsentry/portsentry.conf
 
 # Send a message through telegram:
-echo "KILL_RUN_CMD=\"$TELEGRAM_PATH/telegram_notify.sh --error --text \$TARGET$ \$PORT$ \$MODE$\"" >> /etc/portsentry/portsentry.conf
+sudo echo "KILL_RUN_CMD=\"$TELEGRAM_PATH/telegram_notify.sh --error --text 'PortSentry blocked IP:\n\$TARGET$ \$PORT$ \$MODE$'\"" >> /etc/portsentry/portsentry.conf
+
+# Redirect portsentry logs to a dedicated log file:
+echo -e ":msg,contains,\"portsentry \" /var/log/portsentry.log" >> /etc/rsyslog.d/portsentry.conf
+service rsyslog restart
 
 # Restart service:
 systemctl restart portsentry
@@ -247,7 +251,6 @@ else
   echo -e "/!\ Can't use honeypot : Docker is NOT installed :"
   echo " "
 fi
-
 
 # Crontab command :
 #docker stop ssh-honeypot_droberson && docker rm ssh-honeypot_droberson && docker run -d -m 512m --cpus=".5" -p 22:22 --name ssh-honeypot_droberson txt3rob/docker-ssh-honey
