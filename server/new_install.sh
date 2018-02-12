@@ -104,6 +104,7 @@ apt -y install \
 	echo -n "nfs-common "; \
 	echo -n "sshfs "; \
 	echo -n "sshpass "; \
+	echo -n "openvpn "; \
   fi) \
   $(if [ "$VOLUME_TOOLS" == "Yes" ]; then  \
 	echo -n "aufs-tools "; \
